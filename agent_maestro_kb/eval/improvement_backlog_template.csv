@@ -1,0 +1,4 @@
+issue_id,issue,type,source,owner,priority,recommended_action,status
+B001,APAC refund exception lacks owner and threshold,Knowledge/Governance Gap,apac_refund_exception_missing_owner.md,APAC Finance SME,High,Define approval owner and add threshold,Open
+B002,EMEA legacy refund threshold conflicts with FY27 matrix,Contradiction,refund_policy_emea_old.md,Finance Governance,High,Archive or update EMEA policy,Open
+B003,Marketing Cloud rollback thresholds missing,Launch Readiness Gap,marketing_cloud_launch_readiness.md,Digital Transformation,High,Define rollback severity thresholds,Open

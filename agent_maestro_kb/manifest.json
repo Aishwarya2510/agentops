@@ -1,0 +1,90 @@
+[
+  {
+    "file": "README.md",
+    "type": "md"
+  },
+  {
+    "file": "data_approval_matrix.csv",
+    "type": "csv"
+  },
+  {
+    "file": "sops/billing_portal_login_support.md",
+    "type": "md"
+  },
+  {
+    "file": "sops/cash_application_unapplied_cash.md",
+    "type": "md"
+  },
+  {
+    "file": "sops/collections_escalation.md",
+    "type": "md"
+  },
+  {
+    "file": "sops/bad_debt_writeoff_sop.md",
+    "type": "md"
+  },
+  {
+    "file": "sops/email_template_refund_customer.md",
+    "type": "md"
+  },
+  {
+    "file": "sops/marketing_cloud_launch_readiness.md",
+    "type": "md"
+  },
+  {
+    "file": "policies/refund_policy_global.md",
+    "type": "md"
+  },
+  {
+    "file": "policies/refund_policy_emea_old.md",
+    "type": "md"
+  },
+  {
+    "file": "policies/apac_refund_exception_missing_owner.md",
+    "type": "md"
+  },
+  {
+    "file": "policies/approval_matrix_fy27.md",
+    "type": "md"
+  },
+  {
+    "file": "policies/ai_agent_governance.md",
+    "type": "md"
+  },
+  {
+    "file": "process_maps/refund_process_current_state.md",
+    "type": "md"
+  },
+  {
+    "file": "process_maps/refund_process_future_state.md",
+    "type": "md"
+  },
+  {
+    "file": "known_issues/contradictions_and_errors.md",
+    "type": "md"
+  },
+  {
+    "file": "known_issues/organizational_pain_points.md",
+    "type": "md"
+  },
+  {
+    "file": "email_templates/internal_escalation_refund.md",
+    "type": "md"
+  },
+  {
+    "file": "email_templates/sme_review_missing_policy.md",
+    "type": "md"
+  },
+  {
+    "file": "test_cases/agent_maestro_test_cases.csv",
+    "type": "csv"
+  },
+  {
+    "file": "eval/eval_log_template.csv",
+    "type": "csv"
+  },
+  {
+    "file": "eval/improvement_backlog_template.csv",
+    "type": "csv"
+  }
+]

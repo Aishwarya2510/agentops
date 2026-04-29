@@ -1,0 +1,4 @@
+approval_band,min_amount,max_amount,required_approver,governance_note
+Low,0,500,Support Lead,Document decision in ticket and verify customer account.
+Medium,501,5000,Operations Manager,Attach evidence and confirm SOP alignment before action.
+High,5001,999999999,Finance Director,Requires Finance Controls review and documented approval rationale.

@@ -1,0 +1,9 @@
+timestamp,request_type,user_question,agent_used,confidence,missing_context,risk_level,output_quality_placeholder,improvement_needed
+2026-04-27T02:39:14,Refund Approval,"Customer is asking for a $7,500 refund after duplicate billing and login failure.","Audit, Knowledge, Workflow, Finance Risk, Executive Summary",0.76,False,High,Pending human review,True
+2026-04-27T02:51:09,Refund Approval,"Customer requests a $30,000 refund related to bankruptcy.","Audit, Knowledge, Workflow, Finance Risk, Executive Summary",0.64,False,Critical,Pending human review,True
+2026-04-27T02:51:15,Refund Approval,"Customer requests a $30,000 refund related to bankruptcy.","Audit, Knowledge, Workflow, Finance Risk, Executive Summary",0.64,False,Critical,Pending human review,True
+2026-04-27T02:59:37,Refund Approval,"Customer requests a $30,000 refund related to bankruptcy.","Audit, Knowledge, Workflow, Finance Risk, Executive Summary",0.64,False,Critical,Pending human review,True
+2026-04-29T03:35:02,Audit Request,What is obama doing today,"Audit, Knowledge, Workflow, Finance Risk, Executive Summary",1.0,False,Out of Scope,Pending human review,False
+2026-04-29T03:37:01,Refund Approval,"I want a refund of 50 usd, i didnot like  the application","Audit, Knowledge, Workflow, Finance Risk, Executive Summary",0.78,False,Low,Pending human review,False
+2026-04-29T03:38:25,Refund Approval,"I want a refund of 5000 usd, i didnot like  the application","Audit, Knowledge, Workflow, Finance Risk, Executive Summary",0.78,False,Low,Pending human review,False
+2026-04-29T03:38:49,Refund Approval,"I want a refund of 5000 usd, i didnot like  the application","Audit, Knowledge, Workflow, Finance Risk, Executive Summary",0.78,False,Low,Pending human review,False

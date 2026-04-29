@@ -1,0 +1,42 @@
+tasks:
+  - agent: knowledge_agent
+    consumes:
+      - User Request
+      - Request Type
+      - Local SOP Files
+    description: >
+      Review the user request, request type, sample SOP markdown files, and approval
+      matrix. Return the relevant local context and call out missing policy coverage.
+    expected_output: Relevant SOP/context used and any missing context.
+  - agent: audit_agent
+    consumes:
+      - Knowledge Agent output
+    description: >
+      Identify process gaps, likely root cause, control risks, and automation
+      opportunities for the operations request using the retrieved SOP context.
+    expected_output: Audit observations and automation opportunities.
+  - agent: workflow_agent
+    consumes:
+      - Audit Agent output
+      - Approval Matrix
+    description: >
+      Recommend next steps, owner, timeline, dependencies, and escalation path.
+    expected_output: Practical workflow recommendation.
+  - agent: finance_risk_agent
+    consumes:
+      - Workflow Agent output
+      - Approval Matrix
+    description: >
+      Evaluate approval threshold, financial risk, compliance severity, and
+      governance notes using the approval matrix and proposed workflow route.
+    expected_output: Risk rating and governance note.
+  - agent: executive_summary_agent
+    consumes:
+      - Knowledge Agent output
+      - Audit Agent output
+      - Workflow Agent output
+      - Finance Risk Agent output
+    description: >
+      Summarize the full crew output for leadership with business impact and the
+      recommended next action.
+    expected_output: Concise executive summary.

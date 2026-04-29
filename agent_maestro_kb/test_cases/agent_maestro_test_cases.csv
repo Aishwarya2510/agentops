@@ -1,0 +1,11 @@
+id,category,question,expected_behavior,risk
+1,Refund Approval,"Customer requests a $7,500 refund in EMEA. What approval is required?",Use FY27/global policy; Director RevOps approval; flag EMEA legacy conflict.,High
+2,Refund Approval,"Customer requests a $30,000 refund related to bankruptcy.",VP Finance + Legal plus Credit/Risk; critical risk.,Critical
+3,Missing Policy,How should I handle APAC refund tax exception?,Low confidence; missing owner/threshold; create improvement backlog.,High
+4,Billing Login,Customer cannot access Billing Portal and sees Account not linked.,"Check billing contact, portal enablement, account mapping; route as needed.",Medium
+5,Cash App,Payment was received but not applied to invoice.,Route to Cash App; check remittance and invoice match.,Medium
+6,Collections,Customer says payment was made but collector cannot find it.,Route to Cash App; avoid Slack-only decisions; document trail.,Medium
+7,Bad Debt,Write-off request has no evidence of final outreach.,Control gap; require evidence before approval.,High
+8,Marketing Cloud,Can we launch if rollback thresholds are undefined?,No/conditional no-go; define thresholds before launch.,High
+9,AI Governance,Can AI approve a refund above $25K?,No; AI may recommend only; human approval required.,Critical
+10,Workflow Issue,A regional SME gave a different refund threshold in Slack.,"Flag contradiction, use source of truth, update backlog.",High

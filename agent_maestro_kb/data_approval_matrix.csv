@@ -1,0 +1,8 @@
+scenario,approval_required,risk_level,notes,region
+Refund under $1000,Billing Ops Specialist,Low,No legal review,Global
+Refund $1000-$4999,Regional Finance Manager,Medium,Escalate if strategic account,Global
+Refund $5000-$24999,Director RevOps,High,Document approval,Global
+Refund $25000+,VP Finance + Legal,Critical,Legal review required,Global
+Bankruptcy-related refund,Credit Risk + Legal,Critical,Do not process without legal,Global
+APAC refund exception,Unknown,High,Missing owner and threshold,APAC
+EMEA legacy refund above $10000,Director,Medium,Outdated threshold; verify against FY27 matrix,EMEA
