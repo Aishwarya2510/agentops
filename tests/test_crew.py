@@ -1,6 +1,8 @@
 from crews.crew import (
     approval_band,
+    classify_request_type,
     extract_amount,
+    parse_openai_json,
     retrieve_context,
     run_operations_crew,
 )
@@ -8,6 +10,10 @@ from crews.crew import (
 
 def test_extract_amount_uses_largest_detected_amount():
     assert extract_amount("Invoice 123 has duplicate charge of $7,500 and credit 25") == 7500
+
+
+def test_extract_amount_handles_uncommaed_high_value_amount():
+    assert extract_amount("Customer asking refund for $75000") == 75000
 
 
 def test_retrieve_context_finds_refund_and_billing_sources():
@@ -88,3 +94,94 @@ def test_kb_detects_refund_policy_contradiction():
 
     assert result["contradictions"]
     assert any("known_issues" in source for source in result["sources"])
+
+
+def test_enterprise_decision_layers_are_returned():
+    result = run_operations_crew(
+        "Refund Approval",
+        "Customer asks for a $7,500 refund after duplicate billing and login failure.",
+    )
+
+    assert result["priority"]["label"] == "High"
+    assert result["business_impact"]["time_saved_minutes"] > 0
+    assert "Zendesk Ticket" in result["integration_simulation"]["source"]
+    assert set(result["role_views"]) == {"Analyst", "Manager", "Director"}
+    assert result["executive_summary"]["Issue"].startswith("Refund Approval")
+    assert result["confidence_drivers"]["positive"]
+
+
+def test_parse_openai_json_handles_markdown_wrapped_json():
+    parsed = parse_openai_json(
+        """```json
+        {"recommended_workflow": "Route to Finance", "risk_note": "High risk"}
+        ```"""
+    )
+
+    assert parsed["recommended_workflow"] == "Route to Finance"
+
+
+def test_parse_openai_json_handles_prefixed_json():
+    parsed = parse_openai_json(
+        'Here is the grounded JSON: {"email_draft": "Hi team", "agent_outputs": {}}'
+    )
+
+    assert parsed["email_draft"] == "Hi team"
+
+
+def test_uncommaed_high_value_sensitive_refund_routes_to_critical_escalation():
+    result = run_operations_crew(
+        "Refund Approval",
+        "customer asking refund for $75000, says we caused him emotional instability",
+    )
+
+    assert result["amount"] == 75000
+    assert result["risk_level"] == "Critical"
+    assert result["priority"]["label"] == "Critical"
+    assert "VP Finance" in result["approval_owner"]
+    assert "Legal" in result["recommended_workflow"]
+    assert any("Sensitive customer-impact claim" in reason for reason in result["exception"]["reasons"])
+    assert result["confidence_action"]["action"] == "Escalate for manual review before execution"
+    assert result["data_sensitivity"]["detected"] is True
+    assert result["policy_versions"]
+    assert any(item["workflow"] == "CX Escalation" for item in result["subtasks"])
+    assert result["fallback"]["needed"] is True
+
+
+def test_classify_request_type_detects_refund_without_dropdown():
+    classification = classify_request_type(
+        "customer asking refund for $75000, says we caused him emotional instability"
+    )
+
+    assert classification["request_type"] == "Refund Approval"
+
+
+def test_run_operations_crew_auto_detects_request_type():
+    result = run_operations_crew(
+        "Customer cannot access the billing portal after password reset and needs invoice access."
+    )
+
+    assert result["request_type"] == "Billing Login"
+    assert result["classification"]["request_type"] == "Billing Login"
+
+
+def test_classify_request_type_detects_governance_and_collections():
+    governance = classify_request_type(
+        "A team wants to deploy an AI assistant that can recommend refunds without human approval."
+    )
+    collections = classify_request_type(
+        "Customer is in collections and a Slack note says to pause dunning with no approval."
+    )
+
+    assert governance["request_type"] == "AI Governance"
+    assert collections["request_type"] == "Collections"
+
+
+def test_low_confidence_context_skips_llm_policy():
+    result = run_operations_crew(
+        "Unknown missing SOP for refund exception with no owner.",
+        api_key="fake-key",
+    )
+
+    assert result["llm_status"] == "skipped"
+    assert result["llm_usage"]["should_call_llm"] is False
+    assert result["suggested_rule_updates"]
