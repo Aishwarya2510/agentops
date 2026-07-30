@@ -721,9 +721,9 @@ def render_results(result: dict, similar_cases: dict | None = None, selected_rol
     render_overview_strip(result)
 
     if result.get("llm_status") == "enhanced":
-        st.success(f"OpenAI enhancement applied with {result['openai_model']}.")
+        st.success(f"OpenAI-generated analysis applied with {result['openai_model']}.")
     elif result.get("llm_status") == "error":
-        st.warning(f"OpenAI enhancement failed, so grounded local output is shown. {result['llm_error']}")
+        st.warning(f"OpenAI generation failed, so grounded local output is shown. {result['llm_error']}")
 
     if result["risk_level"] == "Out of Scope":
         panel("Scope Gate", escape(result["recommended_workflow"]))

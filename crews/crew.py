@@ -632,14 +632,12 @@ def llm_usage_policy(question: str, result_facts: dict[str, Any]) -> dict[str, A
     input_tokens = max(250, int((len(question) + len(json.dumps(result_facts, default=str))) / 4))
     output_tokens = 900
     estimated_cost = round(((input_tokens / 1_000_000) * 0.15) + ((output_tokens / 1_000_000) * 0.60), 4)
-    confidence_action = result_facts.get("confidence_action", {})
-    should_call = confidence_action.get("band") != "Low"
     return {
         "estimated_input_tokens": input_tokens,
         "estimated_output_tokens": output_tokens,
         "estimated_cost_usd": estimated_cost,
-        "should_call_llm": should_call,
-        "decision": "Use OpenAI wording enhancement" if should_call else "Skip OpenAI enhancement until manual review clears context",
+        "should_call_llm": True,
+        "decision": "Use OpenAI wording generation with grounded local controls",
     }
 
 
@@ -1179,10 +1177,11 @@ def build_grounded_result(request_type: str, question: str) -> dict[str, Any]:
 
 
 def enhance_with_openai(result: dict[str, Any], api_key: str, model: str = DEFAULT_OPENAI_MODEL) -> dict[str, Any]:
-    """Refine grounded agent outputs through the OpenAI API.
+    """Generate user-facing operations analysis through the OpenAI API.
 
-    The API call is allowed to improve wording and completeness only. It must not
-    change risk scoring, confidence, source attribution, or QA checks.
+    The deterministic workflow still supplies guardrails such as retrieved context,
+    risk score, confidence, source attribution, and QA checks. The model owns the
+    visible analysis sections so runs do not collapse into canned wording.
     """
     if not api_key:
         return result
@@ -1213,38 +1212,94 @@ def enhance_with_openai(result: dict[str, Any], api_key: str, model: str = DEFAU
             "contradictions": result["contradictions"],
             "interaction_report": result["interaction_report"],
         },
-        "draft_outputs": {
+        "current_local_outputs": {
             "agent_outputs": result["agent_outputs"],
             "recommended_workflow": result["recommended_workflow"],
             "risk_note": result["risk_note"],
             "email_draft": result["email_draft"],
+            "executive_summary": result.get("executive_summary", {}),
+            "role_views": result.get("role_views", {}),
+            "confidence_drivers": result.get("confidence_drivers", {}),
+            "subtasks": result.get("subtasks", []),
+            "suggested_rule_updates": result.get("suggested_rule_updates", []),
         },
         "context_snippets": result.get("context_snippets", [])[:5],
     }
     instructions = (
-        "You are Agent Maestro for Command Ops. Hard rules: answer only work-related "
-        "operations requests; use only the supplied facts and context; do not invent "
-        "policies, sources, approvers, amounts, priority labels, or risk ratings; clearly flag missing "
-        "context; keep outputs concise and actionable. Return a raw JSON object only. "
-        "Do not use markdown, code fences, explanations, or leading text. Required keys: "
-        "agent_outputs, recommended_workflow, risk_note, email_draft."
+        "You are Agent Maestro for Command Ops. Generate the actual user-facing "
+        "analysis for this operations request. Use the supplied facts, retrieved "
+        "context, and current local outputs as grounding, but do not merely repeat "
+        "their wording. Be specific to the user's request, explain tradeoffs, call "
+        "out missing evidence, and produce actionable next steps. You may not change "
+        "fixed facts such as request type, risk level, confidence score, amount, "
+        "approval owner, priority label, source names, contradiction list, or QA "
+        "check counts. If the request is out of scope, use the AI response to explain "
+        "why it is out of scope and what kind of Command Ops request would be valid. "
+        "Return a raw JSON object only. Do not use markdown code fences, explanations, "
+        "or leading text. Required keys: agent_outputs, recommended_workflow, "
+        "risk_note, email_draft, executive_summary, role_views, confidence_drivers, "
+        "subtasks, suggested_rule_updates. agent_outputs must be an object keyed by "
+        "agent name. executive_summary must be an object with Issue, Risk, Action, "
+        "Impact, and Recommendation keys. role_views must include Analyst, Manager, "
+        "and Director. confidence_drivers must include positive and negative arrays. "
+        "subtasks must be an array of objects. suggested_rule_updates must be an array "
+        "of strings."
     )
 
     try:
         client = OpenAI(api_key=api_key)
-        response = client.responses.create(
-            model=model,
-            instructions=instructions,
-            input=json.dumps(prompt_payload, indent=2),
-            max_output_tokens=1500,
-        )
-        content = response.output_text
+        prompt_json = json.dumps(prompt_payload, indent=2)
+        if hasattr(client, "responses"):
+            response = client.responses.create(
+                model=model,
+                instructions=instructions,
+                input=prompt_json,
+                max_output_tokens=2400,
+            )
+            content = response.output_text
+        elif hasattr(client, "chat") and hasattr(client.chat, "completions"):
+            response = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": instructions},
+                    {"role": "user", "content": prompt_json},
+                ],
+                max_tokens=2400,
+                temperature=0.2,
+            )
+            content = response.choices[0].message.content or ""
+        else:
+            raise ValueError("Installed OpenAI package does not support Responses or Chat Completions APIs.")
         enhanced = parse_openai_json(content)
         if isinstance(enhanced.get("agent_outputs"), dict):
             result["agent_outputs"] = enhanced["agent_outputs"]
         for key in ["recommended_workflow", "risk_note", "email_draft"]:
             if isinstance(enhanced.get(key), str) and enhanced[key].strip():
                 result[key] = enhanced[key].strip()
+        if isinstance(enhanced.get("executive_summary"), dict):
+            result["executive_summary"].update(
+                {
+                    key: str(value).strip()
+                    for key, value in enhanced["executive_summary"].items()
+                    if key in result["executive_summary"] and str(value).strip()
+                }
+            )
+        if isinstance(enhanced.get("role_views"), dict):
+            for role in ["Analyst", "Manager", "Director"]:
+                value = enhanced["role_views"].get(role)
+                if isinstance(value, str) and value.strip():
+                    result["role_views"][role] = value.strip()
+        if isinstance(enhanced.get("confidence_drivers"), dict):
+            for key in ["positive", "negative"]:
+                value = enhanced["confidence_drivers"].get(key)
+                if isinstance(value, list):
+                    result["confidence_drivers"][key] = [str(item).strip() for item in value if str(item).strip()]
+        if isinstance(enhanced.get("subtasks"), list):
+            result["subtasks"] = enhanced["subtasks"]
+        if isinstance(enhanced.get("suggested_rule_updates"), list):
+            result["suggested_rule_updates"] = [
+                str(item).strip() for item in enhanced["suggested_rule_updates"] if str(item).strip()
+            ]
         result["llm_status"] = "enhanced"
         result["llm_error"] = ""
         result["openai_model"] = model
@@ -1272,7 +1327,11 @@ def run_operations_crew(
         request_type = None
 
     if not is_work_related(question):
-        return build_out_of_scope_result(question)
+        result = build_out_of_scope_result(question)
+        result["llm_usage"] = llm_usage_policy(question, result)
+        if api_key:
+            result = enhance_with_openai(result, api_key=api_key, model=model)
+        return result
 
     classification = classify_request_type(question)
     request_type = request_type or classification["request_type"]
@@ -1281,10 +1340,5 @@ def run_operations_crew(
     result["request_type"] = request_type
     result["llm_usage"] = llm_usage_policy(question, result)
     if api_key:
-        if result["llm_usage"]["should_call_llm"]:
-            result = enhance_with_openai(result, api_key=api_key, model=model)
-        else:
-            result["llm_status"] = "skipped"
-            result["llm_error"] = result["llm_usage"]["decision"]
-            result["openai_model"] = model
+        result = enhance_with_openai(result, api_key=api_key, model=model)
     return result

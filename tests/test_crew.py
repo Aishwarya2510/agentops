@@ -1,6 +1,7 @@
 from crews.crew import (
     approval_band,
     classify_request_type,
+    enhance_with_openai,
     extract_amount,
     parse_openai_json,
     retrieve_context,
@@ -176,12 +177,72 @@ def test_classify_request_type_detects_governance_and_collections():
     assert collections["request_type"] == "Collections"
 
 
-def test_low_confidence_context_skips_llm_policy():
+def test_low_confidence_context_still_calls_llm_policy(monkeypatch):
+    calls = {}
+
+    def fake_enhance(result, api_key, model):
+        calls["api_key"] = api_key
+        result["llm_status"] = "enhanced"
+        result["openai_model"] = model
+        return result
+
+    monkeypatch.setattr("crews.crew.enhance_with_openai", fake_enhance)
+
     result = run_operations_crew(
         "Unknown missing SOP for refund exception with no owner.",
         api_key="fake-key",
     )
 
-    assert result["llm_status"] == "skipped"
-    assert result["llm_usage"]["should_call_llm"] is False
+    assert calls["api_key"] == "fake-key"
+    assert result["llm_status"] == "enhanced"
+    assert result["llm_usage"]["should_call_llm"] is True
     assert result["suggested_rule_updates"]
+
+
+def test_out_of_scope_with_key_still_calls_llm(monkeypatch):
+    calls = {}
+
+    def fake_enhance(result, api_key, model):
+        calls["api_key"] = api_key
+        result["llm_status"] = "enhanced"
+        result["openai_model"] = model
+        return result
+
+    monkeypatch.setattr("crews.crew.enhance_with_openai", fake_enhance)
+
+    result = run_operations_crew("What is the capital of France?", api_key="fake-key")
+
+    assert calls["api_key"] == "fake-key"
+    assert result["risk_level"] == "Out of Scope"
+    assert result["llm_usage"]["should_call_llm"] is True
+
+
+def test_enhance_with_openai_falls_back_to_chat_completions(monkeypatch):
+    class FakeMessage:
+        content = '{"recommended_workflow": "AI generated workflow", "risk_note": "AI generated risk note", "email_draft": "AI draft", "agent_outputs": {}}'
+
+    class FakeChoice:
+        message = FakeMessage()
+
+    class FakeChatCompletions:
+        @staticmethod
+        def create(**kwargs):
+            return type("FakeResponse", (), {"choices": [FakeChoice()]})()
+
+    class FakeChat:
+        completions = FakeChatCompletions()
+
+    class FakeOpenAI:
+        chat = FakeChat()
+
+        def __init__(self, api_key):
+            self.api_key = api_key
+
+    monkeypatch.setattr("openai.OpenAI", FakeOpenAI)
+
+    result = run_operations_crew("Customer needs a $100 refund after duplicate billing.")
+    enhanced = enhance_with_openai(result, api_key="fake-key")
+
+    assert enhanced["llm_status"] == "enhanced"
+    assert enhanced["recommended_workflow"] == "AI generated workflow"
+    assert enhanced["risk_note"] == "AI generated risk note"
