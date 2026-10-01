@@ -276,98 +276,219 @@ def render_app_shell() -> tuple[str, str]:
     st.markdown(
         """
         <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+        :root {
+            --ink: #17203c;
+            --muted: #667085;
+            --purple: #6c3cff;
+            --purple-dark: #4c24c9;
+            --cyan: #15c7d4;
+            --coral: #ff6b6b;
+            --lime: #b8e83e;
+            --sun: #ffca3a;
+            --canvas: #f7f5ff;
+            --card: rgba(255, 255, 255, 0.92);
+            --line: #e5e0f6;
+        }
+        html, body, [class*="css"] {
+            font-family: 'DM Sans', sans-serif;
+        }
+        .stApp {
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 8% 3%, rgba(108, 60, 255, 0.13), transparent 26rem),
+                radial-gradient(circle at 96% 10%, rgba(21, 199, 212, 0.14), transparent 25rem),
+                linear-gradient(180deg, #fbfaff 0%, #f7f5ff 52%, #f0faff 100%);
+        }
         .block-container {
-            padding-top: 1rem;
-            padding-bottom: 2rem;
-            max-width: 1500px;
+            padding-top: 1.35rem;
+            padding-bottom: 3rem;
+            max-width: 1440px;
         }
-        h1 {
-            padding-bottom: 0.1rem;
+        h1, h2, h3, h4 {
+            font-family: 'Space Grotesk', sans-serif !important;
+            color: var(--ink);
+            letter-spacing: -0.025em !important;
         }
-        h2, h3 {
-            letter-spacing: 0;
+        h2, h3 { margin-top: 0.75rem; }
+        p, label, [data-testid="stCaptionContainer"] { color: var(--muted); }
+
+        [data-testid="stHeader"] {
+            background: rgba(247, 245, 255, 0.72);
+            backdrop-filter: blur(14px);
         }
+        [data-testid="stSidebar"] {
+            background:
+                radial-gradient(circle at 10% 10%, rgba(21, 199, 212, 0.16), transparent 16rem),
+                linear-gradient(165deg, #25154f 0%, #17112f 58%, #102d3b 100%);
+            border-right: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        [data-testid="stSidebar"] * { color: #f7f4ff; }
+        [data-testid="stSidebar"] p { color: #c9c3df; }
+        [data-testid="stSidebar"] hr { border-color: rgba(255,255,255,0.15); }
+        .am-sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 0.25rem 0 1.35rem;
+        }
+        .am-logo {
+            display: grid;
+            place-items: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 13px;
+            color: #24154b;
+            font: 700 1.05rem 'Space Grotesk', sans-serif;
+            background: linear-gradient(135deg, var(--lime), var(--cyan));
+            box-shadow: 0 10px 24px rgba(21, 199, 212, 0.28);
+        }
+        .am-brand-name { font: 700 1.05rem 'Space Grotesk', sans-serif; color: #fff; }
+        .am-brand-kicker { color: #aaa1c7; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; }
+
+        .am-page-hero {
+            position: relative;
+            overflow: hidden;
+            padding: 2.15rem 2.35rem;
+            margin: 0.2rem 0 1.35rem;
+            border-radius: 26px;
+            color: white;
+            background: linear-gradient(120deg, #5930df 0%, #6c3cff 42%, #08aeba 100%);
+            box-shadow: 0 22px 54px rgba(76, 36, 201, 0.22);
+        }
+        .am-page-hero::after {
+            content: '';
+            position: absolute;
+            width: 250px;
+            height: 250px;
+            right: -55px;
+            top: -95px;
+            border-radius: 50%;
+            border: 34px solid rgba(184, 232, 62, 0.24);
+        }
+        .am-eyebrow {
+            color: #dcff8d;
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+        }
+        .am-page-hero h1 {
+            color: #fff;
+            font-size: clamp(2rem, 4vw, 3.3rem);
+            margin: 0.2rem 0 0.45rem;
+            line-height: 1.04;
+        }
+        .am-page-hero p { color: #eeeaff; max-width: 720px; margin: 0; font-size: 1.02rem; }
+        .am-status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            margin-top: 1.15rem;
+            padding: 0.42rem 0.72rem;
+            border: 1px solid rgba(255,255,255,0.28);
+            border-radius: 999px;
+            color: #fff;
+            background: rgba(255,255,255,0.12);
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+        .am-status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 5px rgba(184,232,62,.13); }
+
         [data-testid="stMetric"] {
-            border: 1px solid #334155;
-            border-radius: 8px;
-            padding: 0.8rem 0.9rem;
-            background: #111827;
-            min-height: 92px;
-            box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(108, 60, 255, 0.13);
+            border-radius: 18px;
+            padding: 1rem 1.05rem;
+            background: var(--card);
+            min-height: 108px;
+            box-shadow: 0 12px 30px rgba(71, 48, 132, 0.08);
+        }
+        [data-testid="stMetric"]::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--purple), var(--cyan), var(--lime));
         }
         [data-testid="stMetric"] label,
         [data-testid="stMetric"] label p {
-            color: #dbeafe !important;
-            font-weight: 650;
+            color: #7a7094 !important;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-size: 0.72rem;
         }
         [data-testid="stMetricValue"] {
+            font-family: 'Space Grotesk', sans-serif;
             font-size: 1.55rem;
             line-height: 1.15;
-            color: #f8fafc !important;
+            color: var(--ink) !important;
         }
-        [data-testid="stMetricDelta"] {
-            color: #86efac !important;
-        }
+        [data-testid="stMetricDelta"] { color: #079da8 !important; }
         [data-testid="stSidebar"] .stTextInput input {
             font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         }
         div[data-testid="stForm"] {
-            border: 1px solid #334155;
-            border-radius: 8px;
-            padding: 1rem;
-            background: #111827;
+            border: 1px solid rgba(108, 60, 255, 0.14);
+            border-radius: 20px;
+            padding: 1.2rem;
+            background: var(--card);
+            box-shadow: 0 14px 36px rgba(71, 48, 132, 0.08);
         }
         div[data-testid="stForm"] label,
         div[data-testid="stForm"] label p,
         div[data-testid="stForm"] p,
         div[data-testid="stForm"] span {
-            color: #e5e7eb !important;
+            color: var(--ink) !important;
         }
         div[data-testid="stTextArea"] textarea,
         div[data-testid="stTextInput"] input,
         div[data-baseweb="select"] > div {
-            background: #0f172a !important;
-            color: #f8fafc !important;
-            border-color: #475569 !important;
+            background: #fff !important;
+            color: var(--ink) !important;
+            border: 1px solid #ded8f0 !important;
+            border-radius: 12px !important;
         }
         div[data-testid="stTextArea"] textarea::placeholder,
         div[data-testid="stTextInput"] input::placeholder {
-            color: #94a3b8 !important;
-        }
-        .am-hero {
-            border: 1px solid #334155;
-            border-radius: 8px;
-            padding: 0.95rem 1rem;
-            margin: 0.35rem 0 0.95rem 0;
-            background: #111827;
-        }
-        .am-hero-title {
-            color: #f8fafc;
-            font-size: 1.05rem;
-            font-weight: 750;
-            margin-bottom: 0.25rem;
+            color: #9a91b0 !important;
         }
         .am-hero-body {
-            color: #dbeafe;
+            color: var(--muted);
             font-size: 0.95rem;
-            line-height: 1.45;
+            line-height: 1.55;
         }
         .am-panel {
-            border: 1px solid #334155;
-            border-radius: 8px;
-            padding: 0.9rem 1rem;
-            margin-bottom: 0.8rem;
-            background: #111827;
-            color: #dbeafe;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(108, 60, 255, 0.13);
+            border-radius: 18px;
+            padding: 1.05rem 1.15rem 1.05rem 1.35rem;
+            margin-bottom: 0.9rem;
+            background: var(--card);
+            color: var(--ink);
+            box-shadow: 0 10px 28px rgba(71, 48, 132, 0.07);
+        }
+        .am-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 5px;
+            background: linear-gradient(180deg, var(--coral), var(--purple));
         }
         .am-panel h4 {
             margin: 0 0 0.45rem 0;
-            color: #f8fafc;
-            font-size: 0.98rem;
+            color: var(--ink);
+            font-size: 1.02rem;
         }
         .am-panel p {
             margin: 0.25rem 0;
-            color: #dbeafe;
+            color: var(--muted);
             line-height: 1.45;
         }
         .am-kv {
@@ -377,7 +498,7 @@ def render_app_shell() -> tuple[str, str]:
             font-size: 0.94rem;
         }
         .am-kv b {
-            color: #f8fafc;
+            color: var(--purple-dark);
         }
         .am-list {
             margin: 0.25rem 0 0 1rem;
@@ -385,7 +506,7 @@ def render_app_shell() -> tuple[str, str]:
         }
         .am-list li {
             margin: 0.2rem 0;
-            color: #dbeafe;
+            color: var(--muted);
         }
         .am-badge-row {
             display: flex;
@@ -394,16 +515,71 @@ def render_app_shell() -> tuple[str, str]:
             margin-top: 0.55rem;
         }
         .am-badge {
-            border: 1px solid #475569;
+            border: 1px solid #d8cffd;
             border-radius: 999px;
-            padding: 0.2rem 0.55rem;
-            background: #0f172a;
-            color: #dbeafe;
+            padding: 0.26rem 0.62rem;
+            background: #f0ecff;
+            color: var(--purple-dark);
             font-size: 0.84rem;
-            font-weight: 650;
+            font-weight: 700;
+        }
+        div[data-testid="stTabs"] [data-baseweb="tab-list"] {
+            gap: 0.5rem;
+            padding: 0.35rem;
+            border-radius: 14px;
+            background: rgba(226, 220, 247, 0.58);
         }
         div[data-testid="stTabs"] button {
-            font-weight: 650;
+            height: auto;
+            padding: 0.62rem 1rem;
+            border-radius: 10px;
+            color: #756b8f;
+            font-weight: 700;
+        }
+        div[data-testid="stTabs"] button p { color: inherit !important; }
+        div[data-testid="stTabs"] button[aria-selected="true"] {
+            color: #fff;
+            background: linear-gradient(110deg, var(--purple), #8c4fff);
+            box-shadow: 0 6px 16px rgba(108,60,255,.24);
+        }
+        div[data-testid="stTabs"] [data-baseweb="tab-highlight"] { display: none; }
+        .stButton > button, [data-testid="stFormSubmitButton"] > button {
+            border: 0;
+            border-radius: 12px;
+            min-height: 44px;
+            color: #fff;
+            font-weight: 700;
+            background: linear-gradient(110deg, var(--purple), #8b4fff 55%, #0eb8c3);
+            box-shadow: 0 10px 22px rgba(108,60,255,.22);
+            transition: transform .18s ease, box-shadow .18s ease;
+        }
+        .stButton > button:hover, [data-testid="stFormSubmitButton"] > button:hover {
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 14px 28px rgba(108,60,255,.3);
+        }
+        [data-testid="stAlert"] {
+            border-radius: 14px;
+            border-width: 1px;
+        }
+        [data-testid="stDataFrame"] {
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 26px rgba(71,48,132,.06);
+        }
+        [data-testid="stExpander"] {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: rgba(255,255,255,.78);
+        }
+        [data-testid="stProgress"] > div > div { background: linear-gradient(90deg, var(--purple), var(--cyan), var(--lime)); }
+        div[role="radiogroup"] label { padding: .28rem .7rem; border-radius: 999px; }
+        div[data-testid="stToggle"] [data-checked="true"] { background: var(--purple) !important; }
+        @media (max-width: 780px) {
+            .block-container { padding: 1rem 0.8rem 2rem; }
+            .am-page-hero { padding: 1.6rem 1.35rem; border-radius: 20px; }
+            .am-page-hero h1 { font-size: 2rem; }
         }
         textarea {
             font-size: 0.92rem !important;
@@ -414,7 +590,16 @@ def render_app_shell() -> tuple[str, str]:
     )
 
     with st.sidebar:
-        st.header("Setup")
+        st.markdown(
+            """
+            <div class="am-sidebar-brand">
+                <div class="am-logo">AM</div>
+                <div><div class="am-brand-name">Agent Maestro</div><div class="am-brand-kicker">Operations OS</div></div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.header("⚙️ Workspace setup")
         default_key = get_secret_api_key()
         api_key = st.text_input(
             "OpenAI API key",
@@ -430,7 +615,7 @@ def render_app_shell() -> tuple[str, str]:
             st.info("Add a key to use the OpenAI API. The app can still run local routing checks.")
 
         st.divider()
-        st.subheader("Hard Rules")
+        st.subheader("🛡️ Guardrails")
         st.write("The agent only accepts Command Ops work.")
         st.write("Out-of-scope questions are blocked before retrieval or LLM calls.")
         st.write("Policy, approver, source, and risk facts must stay grounded in the local context.")
@@ -774,17 +959,27 @@ def render_results(result: dict, similar_cases: dict | None = None, selected_rol
 
 
 def main() -> None:
-    st.set_page_config(page_title="Agent Maestro", page_icon="AM", layout="wide")
+    st.set_page_config(page_title="Agent Maestro", page_icon="⚡", layout="wide")
     ensure_output_files()
     api_key, model = render_app_shell()
 
-    st.title("Agent Maestro")
-    st.caption("Command Ops intelligence for workflow, billing, refund, control, and governance work.")
+    st.markdown(
+        """
+        <section class="am-page-hero">
+            <div class="am-eyebrow">AI-powered command center</div>
+            <h1>Turn operations into momentum.</h1>
+            <p>Route complex requests, surface risk, and move from decision to action with a coordinated crew of specialist agents.</p>
+            <div class="am-status-pill"><span class="am-status-dot"></span> Operations crew online</div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
 
-    request_tab, dashboard_tab = st.tabs(["Operations Console", "Evaluation Dashboard"])
+    request_tab, dashboard_tab = st.tabs(["⚡ Operations Console", "◈ Evaluation Dashboard"])
 
     with request_tab:
-        st.subheader("Run Command Ops Flow")
+        st.subheader("Launch a command flow")
+        st.caption("Give the crew a real operations scenario. It will classify, validate, and recommend the next best action.")
         control_left, control_right = st.columns([1, 1])
         with control_left:
             selected_role = st.selectbox("View as role", ["Analyst", "Manager", "Director"])
@@ -797,7 +992,7 @@ def main() -> None:
                 placeholder="Example: A customer requested a $7,500 refund after duplicate billing and failed login attempts.",
                 height=150,
             )
-            submitted = st.form_submit_button("Run flow", type="primary", use_container_width=True)
+            submitted = st.form_submit_button("⚡ Run command flow", type="primary", use_container_width=True)
 
         if submitted:
             if not user_question.strip():
@@ -840,7 +1035,7 @@ def main() -> None:
         override_frame = load_table(OVERRIDE_LOG, OVERRIDE_COLUMNS)
         agent_frame = load_table(AGENT_PERFORMANCE_LOG, AGENT_PERFORMANCE_COLUMNS)
 
-        st.subheader("System Thinking View")
+        st.subheader("System pulse")
         if eval_frame.empty:
             st.info("No evaluation data yet. Run a few Command Ops flows to populate trends.")
         else:
