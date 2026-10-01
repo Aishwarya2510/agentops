@@ -3,6 +3,7 @@
 Agent Maestro is a Streamlit portfolio app for business operations intelligence. It routes requests through a CrewAI-style multi-agent workflow, grounds recommendations in local SOP/sample data, optionally refines the final output with the OpenAI API, and logs evaluation signals for continuous improvement.
 
 ## What It Does
+OPENAI_API_KEY=sk_jhajkshioaubaajsbabsjbnaijsaoanbjksbvaksbasjabskabsaksbasaksb
 
 - Accepts an operations request and request type: Audit Request, Workflow Issue, Billing Issue, or Refund Approval.
 - Routes the request through five agents: Audit, Knowledge, Workflow, Finance Risk, and Executive Summary.
